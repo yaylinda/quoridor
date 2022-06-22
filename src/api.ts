@@ -1,7 +1,6 @@
 import { getFirestore, collection, getDocs, setDoc, doc, Timestamp } from 'firebase/firestore/lite';
-import { onSnapshot } from "firebase/firestore";
 import {app} from './firebase';
-import { UserCollectionObject } from './types';
+import { User, UserCollectionObject } from './types';
 
 const db = getFirestore(app);
 
@@ -10,19 +9,16 @@ export const gamesCollection = collection(db, 'games');
 
 /**
  * 
- * @param cookieId 
- * @returns 
+ * @param user 
  */
-export const addUser = async (cookieId: string): Promise<UserCollectionObject> => {
-    const user: UserCollectionObject = {
-        id: cookieId,
+export const createUser = async (user: User) => {
+    const userDoc: UserCollectionObject = {
+        ...user,
         createdDate: Timestamp.now(),
         lastLoginDate: Timestamp.now(),
         games: [],
     };
 
     // Asynchronously put the user object in firestore
-    await setDoc(doc(usersCollection, cookieId), user);
-
-    return user;
+    await setDoc(doc(usersCollection, user.id), userDoc);
 }

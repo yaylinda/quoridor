@@ -1,49 +1,53 @@
+import { AppBar, Toolbar, Typography } from '@mui/material';
 import { doc, onSnapshot } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
-import { useCookies } from 'react-cookie';
-import { addUser } from './api';
+import { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { usersCollection } from './api';
 import './App.css';
-import { generateCookie, QUORIDOR_APP_COOKIE } from './constants';
-import { UserCollectionObject } from './types';
-import {usersCollection} from './api';
+import GamePage from './pages/GamePage';
+import LandingPage from './pages/LandingPage';
+import { User, UserCollectionObject } from './types';
 
-function App() {
-  const [cookies, setCookie, removeCookie] = useCookies([QUORIDOR_APP_COOKIE]);
-  const [cookieId, setCookieId] = useState<string>('');
-  const [user, setUser] = useState<UserCollectionObject | null>();
+interface AppProps {
+  user: User,
+}
+
+function App({ user }: AppProps) {
+  const [userDoc, setUserDoc] = useState<UserCollectionObject | null>();
 
   /**
    * Set up listener on user updates
    */
   useEffect(() => {
-    if (!cookieId) {
+    if (!user?.id) {
       return;
     }
 
-    const unsub = onSnapshot(doc(usersCollection, cookieId), (doc) => setUser(doc.data() as UserCollectionObject));
+    const unsub = onSnapshot(doc(usersCollection, user.id), (doc) => setUserDoc(doc.data() as UserCollectionObject));
 
     return () => {
       unsub();
     }
   }, []);
-  
-  /**
-   * Get or set the cookieId. If generating a new one, add a new user to the database.
-   */
-  useEffect(() => {
-    if (cookies?.QUORIDOR_APP_COOKIE) {
-      setCookieId(cookies.QUORIDOR_APP_COOKIE);
-    } else {
-      const cookie = generateCookie();
-      setCookie(QUORIDOR_APP_COOKIE, cookie);
-      setCookieId(cookie);
-      addUser(cookie);
-    }
-  }, [cookies]);
 
   return (
-    <div className="App">
-    </div>
+    <>
+      <AppBar position="static">
+        <Toolbar sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+          <Typography variant="h6" component="div">
+            Quoridor
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      {
+        userDoc ? (
+          <Routes>
+            <Route path="/" element={<LandingPage user={userDoc} />} />
+            <Route path="game/:id" element={<GamePage />} />
+          </Routes>
+        ) : null
+      }
+    </>
   );
 }
 

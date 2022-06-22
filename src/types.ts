@@ -1,11 +1,12 @@
 import { Timestamp } from "firebase/firestore/lite";
 
-interface CollectionObject {
+export interface User {
     id: string,
-    createdDate: Timestamp,
+    username: string,
 }
 
-export interface UserCollectionObject extends CollectionObject {
+export interface UserCollectionObject extends User {
+    createdDate: Timestamp,
     lastLoginDate: Timestamp,
     games: UserGame[],
 }
@@ -19,6 +20,6 @@ export interface UserGame {
     gameType: GameType, 
 }
 
-export interface GameCollectionObject extends CollectionObject {
+export interface GameCollectionObject {
 
 }
