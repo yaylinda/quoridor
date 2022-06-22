@@ -1,6 +1,7 @@
 import { Container, Typography, Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { UserCollectionObject } from '../types';
+import { UserCollectionObject } from '../../types';
+import './LandingPage.css';
 
 interface LandingPageProps {
     user: UserCollectionObject,
@@ -9,12 +10,12 @@ interface LandingPageProps {
 function LandingPage({ user }: LandingPageProps) {
 
     const createGame = () => {
-
+        
     }
 
     return (
-        <Container>
-            <Button variant="contained" onClick={createGame}>Start New Game</Button>
+        <Container className='landing_page_container'>
+            <Button variant="contained" color="success" onClick={createGame}>Start New Game</Button>
         </Container>
     );
 }

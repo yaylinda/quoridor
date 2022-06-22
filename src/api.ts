@@ -19,6 +19,7 @@ export const createUser = async (user: User) => {
         games: [],
     };
 
+    console.log(`creating user: ${JSON.stringify(userDoc)}`);
     // Asynchronously put the user object in firestore
     await setDoc(doc(usersCollection, user.id), userDoc);
 }

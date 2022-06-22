@@ -5,7 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { USER_LOCAL_STORAGE_KEY } from './constants';
-import { uuid } from 'uuidv4';
+import { v4 as uuidv4 } from 'uuid';
 import { generateName } from './utils/nameGenerator/nameGenerator';
 import { User } from './types';
 import { createUser } from './api';
@@ -17,8 +17,9 @@ if (storedUser) {
 } else {
   user = {
     username: generateName(),
-    id: uuid(),
+    id: uuidv4(),
   };
+  // TODO - handle createUser error
   createUser(user);
   window.localStorage.setItem(USER_LOCAL_STORAGE_KEY, JSON.stringify(user));
 }
