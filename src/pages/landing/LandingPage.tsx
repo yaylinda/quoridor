@@ -1,23 +1,40 @@
 import { Container, Typography, Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { UserCollectionObject } from '../../types';
+import { GameType, UserCollectionObject } from '../../types';
 import './LandingPage.css';
+import { v4 as uuidv4 } from 'uuid';
+import { createGame } from '../../api';
+import { useNavigate } from 'react-router-dom';
 
 interface LandingPageProps {
-    user: UserCollectionObject,
+  user: UserCollectionObject,
 }
 
 function LandingPage({ user }: LandingPageProps) {
 
-    const createGame = () => {
-        
-    }
+  const navigate = useNavigate();
 
-    return (
-        <Container className='landing_page_container'>
-            <Button variant="contained" color="success" onClick={createGame}>Start New Game</Button>
-        </Container>
-    );
+  /**
+   * 
+   */
+  const startGame = () => {
+    const gameId = uuidv4();
+
+    createGame(user, gameId, GameType.Quoridor)
+      .then(() => {
+        console.log(`navigating to gameId: ${gameId}`);
+        navigate(`game/${gameId}`);
+      })
+      .catch(() => {
+        // TODO - handle error, show alert or something
+      });
+  }
+
+  return (
+    <Container className='landing_page_container'>
+      <Button variant="contained" color="success" onClick={startGame}>Start New Game</Button>
+    </Container>
+  );
 }
 
 export default LandingPage;

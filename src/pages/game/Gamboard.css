@@ -1,0 +1,4 @@
+.gameboard_container {
+    display: flex!important;
+    flex: 1;
+}

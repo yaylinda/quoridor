@@ -30,6 +30,10 @@ function App({ user }: AppProps) {
     }
   }, []);
 
+  /**
+   * 
+   * @returns 
+   */
   const renderContent = () => {
     if (!userDoc) {
       return (
@@ -40,7 +44,7 @@ function App({ user }: AppProps) {
     return (
       <Routes>
         <Route path="/" element={<LandingPage user={userDoc} />} />
-        <Route path="game/:id" element={<GamePage />} />
+        <Route path="game/:id" element={<GamePage user={userDoc} />} />
       </Routes>
     );
   }
