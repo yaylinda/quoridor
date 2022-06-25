@@ -1,4 +1,4 @@
-import { PlayArrow } from "@mui/icons-material";
+import { Add, Loop, PlayArrow } from "@mui/icons-material";
 import {
   Container,
   Typography,
@@ -23,6 +23,7 @@ function GamePage({ user }: UserPageProps) {
   const gameId = params.id;
 
   const [game, setGame] = useState<GameCollectionObject>();
+  const [joining, setJoining] = useState(false);
 
   /**
    * Set up a listener on game updates
@@ -52,11 +53,16 @@ function GamePage({ user }: UserPageProps) {
       return;
     }
 
+    setJoining(true);
+
     joinGame(gameId, game.player1.id, user)
       .then(() => {})
       .catch((e) => {
         // TODO - show alert or something to user
         console.error(e);
+      })
+      .finally(() => {
+        setJoining(false);
       });
   };
 
@@ -115,17 +121,18 @@ function GamePage({ user }: UserPageProps) {
           Created {moment(game.createdDate.seconds, "X").fromNow()}
         </Typography>
         {renderStatus()}
-        <Gameboard game={game} user={user} />
+        <Gameboard gameActions={game.actions} user={user} />
         {!game.player2 && game.player1.id !== user.id && (
           <Button
-            startIcon={<PlayArrow />}
+            disabled={joining}
+            startIcon={joining ? <Loop /> : <PlayArrow />}
             variant="contained"
             color="success"
             size="large"
             sx={{ marginTop: 5 }}
             onClick={onJoinGame}
           >
-            Join Game
+            {joining ? "Joining..." : "Join Game"}
           </Button>
         )}
       </>

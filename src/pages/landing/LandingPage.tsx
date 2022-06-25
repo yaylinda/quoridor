@@ -1,4 +1,6 @@
+import { Add, Loop, PlayArrow } from "@mui/icons-material";
 import { Button, Container } from "@mui/material";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { createGame } from "../../api";
@@ -9,12 +11,14 @@ interface LandingPageProps {
 }
 
 function LandingPage({ user }: LandingPageProps) {
+  const [creating, setCreating] = useState(false);
   const navigate = useNavigate();
 
   /**
    *
    */
-  const startGame = () => {
+  const onCreateGame = () => {
+    setCreating(true);
     const gameId = uuidv4();
 
     createGame(user, gameId, GameType.Quoridor)
@@ -36,8 +40,15 @@ function LandingPage({ user }: LandingPageProps) {
         flexDirection: "column",
       }}
     >
-      <Button variant="contained" color="success" onClick={startGame}>
-        Start New Game
+      <Button
+        startIcon={creating ? <Loop /> : <Add />}
+        disabled={creating}
+        variant="contained"
+        color="success"
+        size="large"
+        onClick={onCreateGame}
+      >
+        {creating ? "Creating..." : "New Game"}
       </Button>
     </Container>
   );

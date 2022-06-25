@@ -37,12 +37,17 @@ export interface GameAction {
   type: GameActionType;
   userId: string;
   createdDate: Timestamp;
+  metadata: GameActionMetadata | null;
 }
 
 export enum GameActionType {
-  START_GAME = "START_GAME",
+  CREATE_GAME = "CREATE_GAME",
   JOIN_GAME = "JOIN_GAME",
+  MOVE_PIECE = "MOVE_PIECE",
+  PLACE_WALL = "PLACE_WALL",
 }
+
+export interface GameActionMetadata {}
 
 export enum CellType {
   WALL = "WALL",

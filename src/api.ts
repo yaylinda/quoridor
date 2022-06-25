@@ -10,6 +10,7 @@ import {
 import { stringify } from "querystring";
 import { app } from "./firebase";
 import {
+  GameAction,
   GameActionType,
   GameCollectionObject,
   GameType,
@@ -45,16 +46,16 @@ export const createUser = async (user: User): Promise<void> => {
 /**
  *
  * @param player1
+ * @param gameId
  * @param type
+ * @returns
  */
 export const createGame = async (
   player1: User,
   gameId: string,
   type: GameType
 ): Promise<void> => {
-  const gameName = `${
-    player1.username
-  }'s ${type} #${randomSingleDigit()}${randomSingleDigit()}${randomSingleDigit()}${randomSingleDigit()}`;
+  const gameName = `${type} Game #${randomSingleDigit()}${randomSingleDigit()}${randomSingleDigit()}${randomSingleDigit()}`;
   const gameDoc: GameCollectionObject = {
     id: gameId,
     displayName: gameName,
@@ -67,9 +68,10 @@ export const createGame = async (
     currentTurn: null,
     actions: [
       {
-        type: GameActionType.START_GAME,
+        type: GameActionType.CREATE_GAME,
         userId: player1.id,
         createdDate: Timestamp.now(),
+        metadata: null,
       },
     ],
   };
@@ -84,6 +86,13 @@ export const createGame = async (
   }
 };
 
+/**
+ *
+ * @param gameId
+ * @param player1Id
+ * @param player2
+ * @returns
+ */
 export const joinGame = async (
   gameId: string,
   player1Id: string,
@@ -96,7 +105,8 @@ export const joinGame = async (
       type: GameActionType.JOIN_GAME,
       userId: player2.id,
       createdDate: Timestamp.now(),
-    }),
+      metadata: null,
+    } as GameAction),
   };
 
   try {
