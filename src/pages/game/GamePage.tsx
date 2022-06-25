@@ -10,7 +10,7 @@ import { onSnapshot, doc } from "firebase/firestore";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { gamesCollection } from "../../api";
+import { gamesCollection, joinGame } from "../../api";
 import { GameCollectionObject, UserCollectionObject } from "../../types";
 import Gameboard from "./Gameboard";
 
@@ -43,6 +43,22 @@ function GamePage({ user }: UserPageProps) {
       unsub();
     };
   }, [gameId]);
+
+  /**
+   *
+   */
+  const onJoinGame = () => {
+    if (!game || !gameId) {
+      return;
+    }
+
+    joinGame(gameId, game.player1.id, user)
+      .then(() => {})
+      .catch((e) => {
+        // TODO - show alert or something to user
+        console.error(e);
+      });
+  };
 
   /**
    *
@@ -107,6 +123,7 @@ function GamePage({ user }: UserPageProps) {
             color="success"
             size="large"
             sx={{ marginTop: 5 }}
+            onClick={onJoinGame}
           >
             Join Game
           </Button>
