@@ -1,7 +1,6 @@
 import { Container, Typography, Button } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { GameType, UserCollectionObject } from '../../types';
-import './LandingPage.css';
 import { v4 as uuidv4 } from 'uuid';
 import { createGame } from '../../api';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +30,13 @@ function LandingPage({ user }: LandingPageProps) {
   }
 
   return (
-    <Container className='landing_page_container'>
+    <Container
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'column'
+      }}
+    >
       <Button variant="contained" color="success" onClick={startGame}>Start New Game</Button>
     </Container>
   );

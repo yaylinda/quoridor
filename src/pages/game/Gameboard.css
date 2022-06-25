@@ -1,9 +1,0 @@
-.gameboard_container {
-    display: flex!important;
-    flex: 1;
-}
-
-.gameboard_row {
-    display: flex;
-    flex-direction: row;
-}

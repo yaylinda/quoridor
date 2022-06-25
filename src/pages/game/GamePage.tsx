@@ -1,18 +1,24 @@
-import { Container, Typography, Button, LinearProgress } from '@mui/material';
-import { onSnapshot, doc } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { gamesCollection } from '../../api';
-import { GameCollectionObject, UserCollectionObject } from '../../types';
-import Gameboard from './Gameboard';
-import './GamePage.css';
+import { PlayArrow } from "@mui/icons-material";
+import {
+  Container,
+  Typography,
+  Button,
+  LinearProgress,
+  Box,
+} from "@mui/material";
+import { onSnapshot, doc } from "firebase/firestore";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { gamesCollection } from "../../api";
+import { GameCollectionObject, UserCollectionObject } from "../../types";
+import Gameboard from "./Gameboard";
 
 interface UserPageProps {
-  user: UserCollectionObject,
+  user: UserCollectionObject;
 }
 
 function GamePage({ user }: UserPageProps) {
-
   const params = useParams();
   const gameId = params.id;
 
@@ -26,29 +32,101 @@ function GamePage({ user }: UserPageProps) {
       return;
     }
 
-    const unsub = onSnapshot(
-      doc(gamesCollection, gameId),
-      (doc) => setGame(doc.data() as GameCollectionObject));
+    const unsub = onSnapshot(doc(gamesCollection, gameId), (doc) => {
+      setGame(doc.data() as GameCollectionObject);
+      console.log(
+        `[GamePage][useEffect][onSnapshot] updating game from firestore`
+      );
+    });
 
     return () => {
       unsub();
-    }
+    };
   }, [gameId]);
 
-  const renderContent = () => {
+  /**
+   *
+   */
+  const renderStatus = () => {
     if (!game) {
-      return (
-        <LinearProgress />
-      );
+      return null;
+    }
+
+    let color;
+    let text;
+
+    if (!game.player2) {
+      color = "orange";
+      text = "WAITING FOR PLAYER 2";
+    } else if (game.currentTurn === user.id) {
+      color = "green";
+      text = "YOUR TURN";
+    } else {
+      color = "gray";
+      text = "OPPONENT'S TURN";
     }
 
     return (
-      <Gameboard game={game} user={user}/>
+      <Typography
+        variant="h6"
+        sx={{
+          color,
+          marginTop: 2,
+          marginBottom: 4,
+          fontWeight: "bold",
+        }}
+      >
+        {text}
+      </Typography>
     );
-  }
+  };
 
+  /**
+   *
+   * @returns
+   */
+  const renderContent = () => {
+    if (!game) {
+      return <LinearProgress />;
+    }
+
+    return (
+      <>
+        <Typography variant="h4" sx={{ textAlign: "center", marginTop: 10 }}>
+          {game.displayName}
+        </Typography>
+        <Typography variant="overline">
+          Created {moment(game.createdDate.seconds, "X").fromNow()}
+        </Typography>
+        {renderStatus()}
+        <Gameboard game={game} user={user} />
+        {!game.player2 && game.player1.id !== user.id && (
+          <Button
+            startIcon={<PlayArrow />}
+            variant="contained"
+            color="success"
+            size="large"
+            sx={{ marginTop: 5 }}
+          >
+            Join Game
+          </Button>
+        )}
+      </>
+    );
+  };
+
+  /**
+   *
+   */
   return (
-    <Container className='game_page_container'>
+    <Container
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        flexDirection: "column",
+        textAlign: "center",
+      }}
+    >
       {renderContent()}
     </Container>
   );

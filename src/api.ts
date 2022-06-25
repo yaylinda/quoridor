@@ -1,7 +1,7 @@
-import { getFirestore, collection, getDocs, setDoc, doc, Timestamp } from 'firebase/firestore/lite';
-import {app} from './firebase';
-import { CellType, GameActionType, GameCollectionObject, GameType, User, UserCollectionObject } from './types';
-import { initializeGameboardFlattened } from './utils/gameUtils';
+import { collection, doc, getFirestore, setDoc, Timestamp } from 'firebase/firestore/lite';
+import { stringify } from 'querystring';
+import { app } from './firebase';
+import { GameActionType, GameCollectionObject, GameType, User, UserCollectionObject } from './types';
 import { randomSingleDigit } from './utils/randomInteger';
 
 const db = getFirestore(app);
@@ -39,8 +39,12 @@ export const createGame = async (user: User, gameId: string, type: GameType): Pr
         id: gameId,
         displayName: gameName,
         type,
-        players: [user],
+        player1: user,
+        player2: null,
         createdDate: Timestamp.now(),
+        player1ActionNumber: 0,
+        player2ActionNumber: 0,
+        currentTurn: null,
         actions: [
             {
                 type: GameActionType.START_GAME,
@@ -48,7 +52,6 @@ export const createGame = async (user: User, gameId: string, type: GameType): Pr
                 createdDate: Timestamp.now(),
             }
         ],
-        boardFlattened: initializeGameboardFlattened()
     };
 
     try {

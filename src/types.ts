@@ -24,10 +24,13 @@ export interface GameCollectionObject {
     id: string,
     displayName: string,
     type: GameType,
-    players: User[],
+    player1: User,
+    player2: User | null,
     createdDate: Timestamp,
+    player1ActionNumber: number,
+    player2ActionNumber: number,
+    currentTurn: string | null,
     actions: GameAction[],
-    boardFlattened: CellData[],
 }
 
 export interface GameAction {
@@ -43,11 +46,12 @@ export enum GameActionType {
 export enum CellType {
     WALL = 'WALL',
     CELL = 'CELL',
+    BLANK = 'BLANK',
 }
 
 export interface CellData {
     row: number,
     col: number,
     type: CellType,
-    occupant: null | User,
+    isWall: boolean,
 }
