@@ -83,6 +83,12 @@ function GamePage({ user }: UserPageProps) {
     } else if (game.currentTurn === user.id) {
       color = "green";
       text = "YOUR TURN";
+    } else if (user.id !== game.player1.id && user.id !== game.player2.id) {
+      color = "gray";
+      text =
+        game.currentTurn === game.player1.id
+          ? "PLAYER 1'S TURN"
+          : "PLAYER 2'S TURN";
     } else {
       color = "gray";
       text = "OPPONENT'S TURN";
@@ -114,14 +120,20 @@ function GamePage({ user }: UserPageProps) {
 
     return (
       <>
-        <Typography variant="h4" sx={{ textAlign: "center", marginTop: 10 }}>
+        <Typography variant="h4" sx={{ textAlign: "center" }}>
           {game.displayName}
         </Typography>
         <Typography variant="overline">
           Created {moment(game.createdDate.seconds, "X").fromNow()}
         </Typography>
         {renderStatus()}
-        <Gameboard gameActions={game.actions} user={user} />
+        <Gameboard
+          gameActions={game.actions}
+          user={user}
+          isPlayer2={user.id === game.player2?.id}
+          player1Id={game.player1.id}
+          player2Id={game.player2?.id || null}
+        />
         {!game.player2 && game.player1.id !== user.id && (
           <Button
             disabled={joining}
@@ -149,6 +161,8 @@ function GamePage({ user }: UserPageProps) {
         justifyContent: "center",
         flexDirection: "column",
         textAlign: "center",
+        paddingTop: 10,
+        paddingBottom: 10,
       }}
     >
       {renderContent()}

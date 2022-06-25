@@ -47,7 +47,10 @@ export enum GameActionType {
   PLACE_WALL = "PLACE_WALL",
 }
 
-export interface GameActionMetadata {}
+export interface GameActionMetadata {
+  to: Coordinate | null;
+  from: Coordinate;
+}
 
 export enum CellType {
   WALL = "WALL",
@@ -59,5 +62,11 @@ export interface CellData {
   row: number;
   col: number;
   type: CellType;
-  isWall: boolean;
+  isWall: boolean; // only applicable for CellType.WALL - is the wall filled or empty
+  occupiedBy: string | null; // only applicable for CellType.CELL - the userId that this cell is occupied by
+}
+
+export interface Coordinate {
+  row: number;
+  col: number;
 }
