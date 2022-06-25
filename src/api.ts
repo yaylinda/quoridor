@@ -115,3 +115,24 @@ export const joinGame = async (
     throw new Error(`Error joining game: ${JSON.stringify(e)}`);
   }
 };
+
+/**
+ *
+ * @param gameId
+ * @param action
+ * @returns
+ */
+export const submitTurn = async (
+  gameId: string,
+  action: GameAction,
+  nextTurn: string
+): Promise<void> => {
+  try {
+    return await updateDoc(doc(gamesCollection, gameId), {
+      currentTurn: nextTurn,
+      actions: arrayUnion(action),
+    });
+  } catch (e) {
+    throw new Error(`Error adding game action: ${JSON.stringify(e)}`);
+  }
+};

@@ -69,7 +69,7 @@ function GamePage({ user }: UserPageProps) {
   /**
    *
    */
-  const renderStatus = () => {
+  const renderStatus = (isMyTurn: boolean) => {
     if (!game) {
       return null;
     }
@@ -80,9 +80,9 @@ function GamePage({ user }: UserPageProps) {
     if (!game.player2) {
       color = "orange";
       text = "WAITING FOR PLAYER 2";
-    } else if (game.currentTurn === user.id) {
+    } else if (isMyTurn) {
       color = "green";
-      text = "YOUR TURN";
+      text = "MY TURN";
     } else if (user.id !== game.player1.id && user.id !== game.player2.id) {
       color = "gray";
       text =
@@ -94,6 +94,8 @@ function GamePage({ user }: UserPageProps) {
       text = "OPPONENT'S TURN";
     }
 
+    // TODO - show last updated time and person
+    // TODO - show if user is player 1, player 2, or spectator
     return (
       <Typography
         variant="h6"
@@ -118,6 +120,8 @@ function GamePage({ user }: UserPageProps) {
       return <LinearProgress />;
     }
 
+    const isMyTurn = user.id === game.currentTurn;
+
     return (
       <>
         <Typography variant="h4" sx={{ textAlign: "center" }}>
@@ -126,11 +130,13 @@ function GamePage({ user }: UserPageProps) {
         <Typography variant="overline">
           Created {moment(game.createdDate.seconds, "X").fromNow()}
         </Typography>
-        {renderStatus()}
+        {renderStatus(isMyTurn)}
         <Gameboard
+          gameId={game.id}
           gameActions={game.actions}
           user={user}
           isPlayer2={user.id === game.player2?.id}
+          isMyTurn={isMyTurn}
           player1Id={game.player1.id}
           player2Id={game.player2?.id || null}
         />
