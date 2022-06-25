@@ -12,7 +12,7 @@ export interface UserCollectionObject extends User {
 }
 
 export enum GameType {
-    Quoridor,
+    Quoridor = 'Quoridor',
 }
 
 export interface UserGame {
@@ -22,11 +22,12 @@ export interface UserGame {
 
 export interface GameCollectionObject {
     id: string,
-    name: string,
+    displayName: string,
     type: GameType,
     players: User[],
     createdDate: Timestamp,
     actions: GameAction[],
+    boardFlattened: CellData[],
 }
 
 export interface GameAction {
@@ -36,5 +37,17 @@ export interface GameAction {
 }
 
 export enum GameActionType {
-    START_GAME,
+    START_GAME = 'START_GAME',
+}
+
+export enum CellType {
+    WALL = 'WALL',
+    CELL = 'CELL',
+}
+
+export interface CellData {
+    row: number,
+    col: number,
+    type: CellType,
+    occupant: null | User,
 }

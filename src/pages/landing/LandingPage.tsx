@@ -25,8 +25,8 @@ function LandingPage({ user }: LandingPageProps) {
         console.log(`navigating to gameId: ${gameId}`);
         navigate(`game/${gameId}`);
       })
-      .catch(() => {
-        // TODO - handle error, show alert or something
+      .catch((e) => {
+        console.error(e);
       });
   }
 

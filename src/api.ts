@@ -1,6 +1,7 @@
 import { getFirestore, collection, getDocs, setDoc, doc, Timestamp } from 'firebase/firestore/lite';
 import {app} from './firebase';
-import { GameActionType, GameCollectionObject, GameType, User, UserCollectionObject } from './types';
+import { CellType, GameActionType, GameCollectionObject, GameType, User, UserCollectionObject } from './types';
+import { initializeGameboardFlattened } from './utils/gameUtils';
 import { randomSingleDigit } from './utils/randomInteger';
 
 const db = getFirestore(app);
@@ -36,7 +37,7 @@ export const createGame = async (user: User, gameId: string, type: GameType): Pr
     const gameName = `${user.username}'s ${type} #${randomSingleDigit()}${randomSingleDigit()}${randomSingleDigit()}${randomSingleDigit()}`
     const gameDoc: GameCollectionObject = {
         id: gameId,
-        name: gameName,
+        displayName: gameName,
         type,
         players: [user],
         createdDate: Timestamp.now(),
@@ -47,10 +48,12 @@ export const createGame = async (user: User, gameId: string, type: GameType): Pr
                 createdDate: Timestamp.now(),
             }
         ],
+        boardFlattened: initializeGameboardFlattened()
     };
 
     try {
-        await setDoc(doc(gamesCollection, gameId), gameDoc);
+        console.log(`[api][createGame] creating new game=${JSON.stringify(gameDoc)}`);
+        return await setDoc(doc(gamesCollection, gameId), gameDoc);
     } catch(e) {
         throw new Error(`Error creating a new game: ${JSON.stringify(e)}`);
     }
