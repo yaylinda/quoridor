@@ -1,9 +1,21 @@
 import { Box, Button, Container } from "@mui/material";
+import { Timestamp } from "firebase/firestore/lite";
 import produce from "immer";
 import { useEffect, useState } from "react";
 import { submitTurn } from "../../api";
-import { CellData, GameAction, User } from "../../types";
-import { applyActionToBoard, initializeGameboard } from "../../utils/gameUtils";
+import {
+  CellData,
+  CellType,
+  Coordinate,
+  GameAction,
+  GameActionType,
+  User,
+} from "../../types";
+import {
+  applyActionToBoard,
+  getCoordinate,
+  initializeGameboard,
+} from "../../utils/gameUtils";
 import GameCell from "./GameCell";
 
 interface GameboardProps {
@@ -11,7 +23,7 @@ interface GameboardProps {
   gameId: string;
   gameActions: GameAction[];
   isPlayer2: boolean;
-  isMyTurn: boolean;
+  currentTurn: string | null;
   player1Id: string;
   player2Id: string | null;
 }
@@ -21,15 +33,19 @@ function Gameboard({
   gameId,
   gameActions,
   isPlayer2,
-  isMyTurn,
+  currentTurn,
   player1Id,
   player2Id,
 }: GameboardProps) {
   const [board, setBoard] = useState(initializeGameboard());
   // The inclusive index within gameActions to start applying actions from
   const [actionIndex, setActionIndex] = useState(0);
+  const [firstClicked, setFirstClicked] = useState<CellData | null>(null);
+  const [secondClicked, setSecondClicked] = useState<CellData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isValid, setIsValid] = useState(false);
+
+  const isMyTurn = user.id === currentTurn;
 
   /**
    * Apply game actions to the game board
@@ -66,12 +82,101 @@ function Gameboard({
     setActionIndex(gameActions.length);
   }, [gameActions]);
 
+  useEffect(() => {
+    setIsValid(firstClicked != null && secondClicked != null);
+  }, [firstClicked, secondClicked]);
+
+  /**
+   *
+   */
   const onSubmitTurn = () => {
+    if (!firstClicked || !secondClicked) {
+      return;
+    }
+
     setSubmitting(true);
-    // submitTurn(gameId)
-    //   .then()
-    //   .catch()
-    //   .finally(() => setSubmitting(false));
+
+    const action: GameAction = {
+      type:
+        firstClicked.type === CellType.CELL
+          ? GameActionType.MOVE_PIECE
+          : GameActionType.PLACE_WALL,
+      userId: user.id,
+      createdDate: Timestamp.now(),
+      metadata: {
+        coord1: getCoordinate(
+          { row: firstClicked.row, col: firstClicked.col },
+          isPlayer2
+        ),
+        coord2: getCoordinate(
+          { row: secondClicked.row, col: secondClicked.col },
+          isPlayer2
+        ),
+      },
+    };
+
+    const nextTurn = currentTurn === player1Id ? player2Id : player1Id;
+
+    submitTurn(gameId, action, nextTurn!)
+      .then()
+      .catch()
+      .finally(() => {
+        setSubmitting(false);
+        onReset();
+      });
+  };
+
+  /**
+   *
+   */
+  const onReset = () => {
+    setFirstClicked(null);
+    setSecondClicked(null);
+  };
+
+  /**
+   *
+   * @param cellData
+   * @returns
+   */
+  const onSetFirstClick = (cellData: CellData) => {
+    setFirstClicked(cellData);
+  };
+
+  const onSetSecondClick = (cellData: CellData) => {
+    setSecondClicked(cellData);
+  };
+
+  /**
+   *
+   * @returns
+   */
+  const renderButtonRow = () => {
+    if (!isMyTurn) {
+      return null;
+    }
+
+    return (
+      <Box sx={{ marginTop: 5 }}>
+        <Button
+          disabled={!firstClicked}
+          variant="outlined"
+          size="large"
+          onClick={onReset}
+        >
+          Reset
+        </Button>
+        <Button
+          disabled={submitting || !isValid}
+          variant="contained"
+          color="success"
+          size="large"
+          onClick={onSubmitTurn}
+        >
+          {submitting ? "Submitting Turn..." : "Submit Turn"}
+        </Button>
+      </Box>
+    );
   };
 
   /**
@@ -85,61 +190,34 @@ function Gameboard({
       }}
     >
       {board.map((row, i) => (
-        <GameRow
-          key={`row_${i}`}
-          row={row}
-          isPlayer2={isPlayer2}
-          player1Id={player1Id}
-          player2Id={player2Id}
-        />
-      ))}
-      {isMyTurn && (
-        <Button
-          disabled={submitting || !isValid}
-          variant="contained"
-          color="success"
-          size="large"
-          sx={{ marginTop: 5 }}
-          onClick={onSubmitTurn}
+        <Box
+          key={`row${i}`}
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+          }}
         >
-          {submitting ? "Submitting Turn..." : "Submit Turn"}
-        </Button>
-      )}
-    </Container>
-  );
-}
-
-interface GameRowProps {
-  row: CellData[];
-  isPlayer2: boolean;
-  player1Id: string;
-  player2Id: string | null;
-}
-
-/**
- *
- * @param param0
- * @returns
- */
-function GameRow({ row, isPlayer2, player1Id, player2Id }: GameRowProps) {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-      }}
-    >
-      {row.map((cell) => (
-        <GameCell
-          key={`row_${cell.row}_col_${cell.col}`}
-          cellData={cell}
-          isPlayer2={isPlayer2}
-          player1Id={player1Id}
-          player2Id={player2Id}
-        />
+          {row.map((cell) => (
+            <GameCell
+              key={cell.id}
+              board={board}
+              cellData={cell}
+              isPlayer2={isPlayer2}
+              isMyTurn={isMyTurn}
+              userId={user.id}
+              player1Id={player1Id}
+              player2Id={player2Id}
+              firstClicked={firstClicked}
+              secondClicked={secondClicked}
+              onSetFirstClick={onSetFirstClick}
+              onSetSecondClick={onSetSecondClick}
+            />
+          ))}
+        </Box>
       ))}
-    </Box>
+      {renderButtonRow()}
+    </Container>
   );
 }
 

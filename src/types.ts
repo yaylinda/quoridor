@@ -48,8 +48,8 @@ export enum GameActionType {
 }
 
 export interface GameActionMetadata {
-  to: Coordinate | null;
-  from: Coordinate;
+  coord1: Coordinate;
+  coord2: Coordinate;
 }
 
 export enum CellType {
@@ -59,6 +59,7 @@ export enum CellType {
 }
 
 export interface CellData {
+  id: string;
   row: number;
   col: number;
   type: CellType;

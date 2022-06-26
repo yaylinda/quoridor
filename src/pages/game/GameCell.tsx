@@ -1,15 +1,22 @@
 import { Avatar, Box } from "@mui/material";
 import { CellData, CellType } from "../../types";
-import { WIDTH } from "../../utils/gameUtils";
+import { isAdjacentCell, isAdjacentWall, WIDTH } from "../../utils/gameUtils";
 
 const CELL_SIZE = 60;
 const WALL_SIZE = 20;
 
 interface GameCellProps {
+  board: CellData[][];
   cellData: CellData;
   isPlayer2: boolean;
+  isMyTurn: boolean;
+  userId: string;
   player1Id: string;
   player2Id: string | null;
+  firstClicked: CellData | null;
+  secondClicked: CellData | null;
+  onSetFirstClick: (cellData: CellData) => void;
+  onSetSecondClick: (cellData: CellData) => void;
 }
 
 /**
@@ -18,11 +25,42 @@ interface GameCellProps {
  * @returns
  */
 function GameCell({
+  board,
   cellData,
   isPlayer2,
+  isMyTurn,
+  userId,
   player1Id,
   player2Id,
+  firstClicked,
+  secondClicked,
+  onSetFirstClick,
+  onSetSecondClick,
 }: GameCellProps) {
+  const isValidForFirstClick = !(
+    !isMyTurn ||
+    firstClicked ||
+    cellData.type === CellType.BLANK ||
+    (cellData.type === CellType.WALL && cellData.isWall) ||
+    (cellData.type === CellType.CELL && cellData.occupiedBy !== userId)
+  );
+
+  const isValidForSecondClick =
+    firstClicked &&
+    !secondClicked &&
+    cellData.id !== firstClicked.id &&
+    firstClicked.type === cellData.type &&
+    isAdjacentWall(firstClicked, cellData) &&
+    isAdjacentCell(firstClicked, cellData, board);
+
+  const willBeOccupiedByPiece =
+    cellData.type === CellType.CELL && cellData.id === secondClicked?.id;
+
+  const willBeVacatedByPiece =
+    cellData.type === CellType.CELL &&
+    cellData.occupiedBy === userId &&
+    secondClicked?.type === CellType.CELL;
+
   const getWidth = () => {
     switch (cellData.type) {
       case CellType.CELL:
@@ -52,11 +90,24 @@ function GameCell({
   const getBackgroundColor = () => {
     switch (cellData.type) {
       case CellType.CELL:
+        if (firstClicked && !isValidForSecondClick && !willBeOccupiedByPiece) {
+          return "lightgray";
+        }
         return "lightcyan";
       case CellType.BLANK:
         return "white";
       case CellType.WALL:
-        return cellData.isWall ? "brown" : "white";
+        if (
+          cellData.isWall ||
+          firstClicked?.id === cellData.id ||
+          secondClicked?.id === cellData.id
+        ) {
+          return "brown";
+        }
+        if (firstClicked && !isValidForSecondClick) {
+          return "lightgray";
+        }
+        return "white";
     }
   };
 
@@ -93,14 +144,33 @@ function GameCell({
     return index + 1 === WIDTH ? 0 : 1;
   };
 
-  const getHoverCursor = () => {
-    if (cellData.type === CellType.BLANK) {
-      return "default";
-    }
-    return "pointer";
-  };
-
   const renderContent = () => {
+    if (willBeOccupiedByPiece) {
+      // This is the cell that we want to move the piece to when user submits turn
+      return (
+        <Avatar
+          sx={{
+            backgroundColor: "green",
+          }}
+        >
+          {isPlayer2 ? "P2" : "P1"}
+        </Avatar>
+      );
+    }
+
+    if (willBeVacatedByPiece) {
+      // This is the cell that is currently occupied by the user's piece
+      return (
+        <Avatar
+          sx={{
+            backgroundColor: "white",
+            borderStyle: "dashed",
+            borderColor: "green",
+          }}
+        ></Avatar>
+      );
+    }
+
     if (cellData.type !== CellType.CELL || !cellData.occupiedBy) {
       return null;
     }
@@ -139,8 +209,23 @@ function GameCell({
     );
   };
 
+  const onClick = () => {
+    if (isValidForFirstClick) {
+      onSetFirstClick(cellData);
+      return;
+    }
+    if (isValidForSecondClick) {
+      onSetSecondClick(cellData);
+      return;
+    }
+  };
+
+  /**
+   *
+   */
   return (
     <Box
+      onClick={() => onClick()}
       sx={{
         display: "flex",
         justifyContent: "center",
@@ -154,8 +239,11 @@ function GameCell({
         marginRight: getMargin(cellData.col),
         marginBottom: getMargin(cellData.row),
         "&:hover": {
-          cursor: getHoverCursor(),
-          opacity: 0.8,
+          cursor:
+            isValidForFirstClick || isValidForSecondClick
+              ? "pointer"
+              : "default",
+          opacity: isValidForFirstClick || isValidForSecondClick ? 0.7 : 1,
         },
       }}
     >

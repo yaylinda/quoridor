@@ -136,7 +136,7 @@ function GamePage({ user }: UserPageProps) {
           gameActions={game.actions}
           user={user}
           isPlayer2={user.id === game.player2?.id}
-          isMyTurn={isMyTurn}
+          currentTurn={game.currentTurn}
           player1Id={game.player1.id}
           player2Id={game.player2?.id || null}
         />

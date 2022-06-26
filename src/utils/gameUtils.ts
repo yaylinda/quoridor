@@ -5,7 +5,7 @@ import {
   GameAction,
   GameActionType,
 } from "../types";
-
+import { v4 as uuidv4 } from "uuid";
 export const CELL_LEN = 9;
 export const WALL_LEN = 8;
 export const WIDTH = CELL_LEN + WALL_LEN;
@@ -43,6 +43,7 @@ export const initializeGameboard = (): CellData[][] => {
         .fill(0)
         .map((x, c) => {
           return {
+            id: `r${r}_c${c}`,
             row: r,
             col: c,
             type: getCellType(r, c),
@@ -82,7 +83,26 @@ export const applyActionToBoard = (
         action.userId
       );
     case GameActionType.MOVE_PIECE:
+      if (!action.metadata) {
+        throw Error("[applyActionToBoard] MOVE_PIECE requires metadata");
+      }
+      return putPieceOnBoard(
+        board,
+        action.metadata.coord1,
+        action.metadata.coord2,
+        isPlayer2,
+        action.userId
+      );
     case GameActionType.PLACE_WALL:
+      if (!action.metadata) {
+        throw Error("[applyActionToBoard] PLACE_WALL requires metadata");
+      }
+      return putWallOnBoard(
+        board,
+        action.metadata.coord1,
+        action.metadata.coord2,
+        isPlayer2
+      );
     default:
       return board;
   }
@@ -116,10 +136,30 @@ const putPieceOnBoard = (
 
 /**
  *
+ * @param board
+ * @param coord1
+ * @param coord2
+ * @returns
+ */
+const putWallOnBoard = (
+  board: CellData[][],
+  coord1: Coordinate,
+  coord2: Coordinate,
+  isPlayer2: boolean
+) => {
+  [coord1, coord2].forEach((coord) => {
+    coord = getCoordinate(coord, isPlayer2);
+    board[coord.row][coord.col].isWall = true;
+  });
+  return board;
+};
+
+/**
+ * Invert the coordinate if the player is player2
  * @param coordinate
  * @returns
  */
-const getCoordinate = (
+export const getCoordinate = (
   coordinate: Coordinate,
   isPlayer2: boolean
 ): Coordinate => {
@@ -127,4 +167,81 @@ const getCoordinate = (
     row: isPlayer2 ? WIDTH - 1 - coordinate.row : coordinate.row,
     col: isPlayer2 ? WIDTH - 1 - coordinate.col : coordinate.col,
   };
+};
+
+export const isAdjacentWall = (otherCell: CellData, thisCell: CellData) => {
+  if (otherCell.type !== CellType.WALL) {
+    // Don't care; other function will take care of it
+    return true;
+  }
+
+  if (otherCell.row % 2 === 1) {
+    return (
+      thisCell.row === otherCell.row &&
+      (thisCell.col === otherCell.col + 2 || thisCell.col === otherCell.col - 2)
+    );
+  }
+
+  if (otherCell.col % 2 === 1) {
+    return (
+      thisCell.col === otherCell.col &&
+      (thisCell.row === otherCell.row + 2 || thisCell.row === otherCell.row - 2)
+    );
+  }
+};
+
+export const isAdjacentCell = (
+  otherCell: CellData,
+  thisCell: CellData,
+  board: CellData[][]
+) => {
+  if (otherCell.type !== CellType.CELL) {
+    // Don't care; other function will take care of it
+    return true;
+  }
+
+  // In same row?
+  if (otherCell.row === thisCell.row) {
+    if (
+      otherCell.col + 2 === thisCell.col &&
+      isEmptyWall(otherCell.row, otherCell.col + 1, board)
+    ) {
+      return true;
+    }
+    if (
+      otherCell.col - 2 === thisCell.col &&
+      isEmptyWall(otherCell.row, otherCell.col - 1, board)
+    ) {
+      return true;
+    }
+  }
+
+  // In same col?
+  if (otherCell.col === thisCell.col) {
+    if (
+      otherCell.row + 2 === thisCell.row &&
+      isEmptyWall(otherCell.row + 1, otherCell.col, board)
+    ) {
+      return true;
+    }
+    if (
+      otherCell.row - 2 === thisCell.row &&
+      isEmptyWall(otherCell.row - 1, otherCell.col, board)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const isEmptyWall = (row: number, col: number, board: CellData[][]) => {
+  if (row > board.length - 1 || row < 0) {
+    return true;
+  }
+  if (col > board[row].length - 1 || col < 0) {
+    return true;
+  }
+
+  return !board[row][col].isWall;
 };
