@@ -258,3 +258,7 @@ const isEmptyWall = (row: number, col: number, board: CellData[][]) => {
 
   return !board[row][col].isWall;
 };
+
+export const doesWallBlockPath = (cellData: CellData, board: CellData[][]) => {
+  // TODO - implement
+};
