@@ -6,7 +6,6 @@ import { submitTurn } from "../../api";
 import {
   CellData,
   CellType,
-  Coordinate,
   GameAction,
   GameActionType,
   User,

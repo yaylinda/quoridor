@@ -1,14 +1,8 @@
-import { Add, Loop, PlayArrow } from "@mui/icons-material";
-import {
-  Container,
-  Typography,
-  Button,
-  LinearProgress,
-  Box,
-} from "@mui/material";
-import { onSnapshot, doc } from "firebase/firestore";
+import { Loop, PlayArrow } from "@mui/icons-material";
+import { Button, Container, LinearProgress, Typography } from "@mui/material";
+import { doc, onSnapshot } from "firebase/firestore";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { gamesCollection, joinGame } from "../../api";
 import { GameCollectionObject, UserCollectionObject } from "../../types";

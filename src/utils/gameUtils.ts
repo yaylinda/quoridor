@@ -5,7 +5,6 @@ import {
   GameAction,
   GameActionType,
 } from "../types";
-import { v4 as uuidv4 } from "uuid";
 export const CELL_LEN = 9;
 export const WALL_LEN = 8;
 export const WIDTH = CELL_LEN + WALL_LEN;
@@ -190,6 +189,13 @@ export const isAdjacentWall = (otherCell: CellData, thisCell: CellData) => {
   }
 };
 
+/**
+ *
+ * @param otherCell
+ * @param thisCell
+ * @param board
+ * @returns
+ */
 export const isAdjacentCell = (
   otherCell: CellData,
   thisCell: CellData,
@@ -235,6 +241,13 @@ export const isAdjacentCell = (
   return false;
 };
 
+/**
+ *
+ * @param row
+ * @param col
+ * @param board
+ * @returns
+ */
 const isEmptyWall = (row: number, col: number, board: CellData[][]) => {
   if (row > board.length - 1 || row < 0) {
     return true;
