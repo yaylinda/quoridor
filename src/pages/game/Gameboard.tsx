@@ -1,4 +1,4 @@
-import { Box, Button, Container } from "@mui/material";
+import { Alert, Box, Button, Container, Snackbar } from "@mui/material";
 import { Timestamp } from "firebase/firestore/lite";
 import produce from "immer";
 import { useEffect, useState } from "react";
@@ -46,11 +46,10 @@ function Gameboard({
   const [board, setBoard] = useState(initializeGameboard());
   // The inclusive index within gameActions to start applying actions from
   const [actionIndex, setActionIndex] = useState(0);
-  // const [firstClicked, setFirstClicked] = useState<CellData | null>(null);
-  // const [secondClicked, setSecondClicked] = useState<CellData | null>(null);
   const [clickedCells, setClickedCells] = useState<CellData[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [isValid, setIsValid] = useState(false);
+  const [showInvalidWallSnackbar, setShowInvalidWallSnackbar] =
+    useState<boolean>(false);
 
   const isMyTurn = user.id === currentTurn;
 
@@ -83,10 +82,6 @@ function Gameboard({
 
     setActionIndex(gameActions.length);
   }, [gameActions]);
-
-  useEffect(() => {
-    setIsValid(clickedCells.length === 2);
-  }, [clickedCells]);
 
   /**
    *
@@ -144,7 +139,7 @@ function Gameboard({
         isPlayer2
       )
     ) {
-      // TODO - show warning about wall blocking path
+      setShowInvalidWallSnackbar(true);
       return;
     }
 
@@ -176,7 +171,7 @@ function Gameboard({
           Reset
         </Button>
         <Button
-          disabled={submitting || !isValid}
+          disabled={submitting || clickedCells.length !== 2}
           variant="contained"
           color="success"
           size="large"
@@ -224,6 +219,19 @@ function Gameboard({
         </Box>
       ))}
       {renderButtonRow()}
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        open={showInvalidWallSnackbar}
+        onClose={() => setShowInvalidWallSnackbar(false)}
+      >
+        <Alert
+          onClose={() => setShowInvalidWallSnackbar(false)}
+          severity="warning"
+          sx={{ width: "100%" }}
+        >
+          Invalid wall segment placement
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
