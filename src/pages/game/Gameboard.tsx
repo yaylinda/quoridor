@@ -6,16 +6,19 @@ import { submitTurn } from "../../api";
 import {
   CellData,
   CellType,
+  Coordinate,
   GameAction,
   GameActionType,
   User,
 } from "../../types";
 import {
   applyActionToBoard,
+  doesWallBlockPath,
   getCoordinate,
   initializeGameboard,
 } from "../../utils/gameUtils";
 import GameCell from "./GameCell";
+import invariant from "invariant";
 
 interface GameboardProps {
   user: User;
@@ -25,6 +28,8 @@ interface GameboardProps {
   currentTurn: string | null;
   player1Id: string;
   player2Id: string | null;
+  player1Location: Coordinate;
+  player2Location: Coordinate | null;
 }
 
 function Gameboard({
@@ -35,12 +40,15 @@ function Gameboard({
   currentTurn,
   player1Id,
   player2Id,
+  player1Location,
+  player2Location,
 }: GameboardProps) {
   const [board, setBoard] = useState(initializeGameboard());
   // The inclusive index within gameActions to start applying actions from
   const [actionIndex, setActionIndex] = useState(0);
-  const [firstClicked, setFirstClicked] = useState<CellData | null>(null);
-  const [secondClicked, setSecondClicked] = useState<CellData | null>(null);
+  // const [firstClicked, setFirstClicked] = useState<CellData | null>(null);
+  // const [secondClicked, setSecondClicked] = useState<CellData | null>(null);
+  const [clickedCells, setClickedCells] = useState<CellData[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isValid, setIsValid] = useState(false);
 
@@ -53,11 +61,6 @@ function Gameboard({
     console.log("[Gameboard][useEffect] updating board...");
     setBoard(
       produce(board, (draft) => {
-        // gameActions.forEach((action) => {
-        //   console.log(`\tapplying action=${action.type}`);
-        //   draft = applyActionToBoard(draft, action, isPlayer2, user.id);
-        //   console.log(`\tdraft=${JSON.stringify(draft)}`);
-        // });
         let startingIndex = isPlayer2 ? 0 : actionIndex;
         gameActions.forEach((action, i) => {
           console.log(`\tapplying action index=${i}`);
@@ -82,41 +85,33 @@ function Gameboard({
   }, [gameActions]);
 
   useEffect(() => {
-    setIsValid(firstClicked != null && secondClicked != null);
-  }, [firstClicked, secondClicked]);
+    setIsValid(clickedCells.length === 2);
+  }, [clickedCells]);
 
   /**
    *
    */
   const onSubmitTurn = () => {
-    if (!firstClicked || !secondClicked) {
-      return;
-    }
+    const [cell1, cell2] = clickedCells;
 
     setSubmitting(true);
 
     const action: GameAction = {
       type:
-        firstClicked.type === CellType.CELL
+        cell1.type === CellType.CELL
           ? GameActionType.MOVE_PIECE
           : GameActionType.PLACE_WALL,
       userId: user.id,
       createdDate: Timestamp.now(),
       metadata: {
-        coord1: getCoordinate(
-          { row: firstClicked.row, col: firstClicked.col },
-          isPlayer2
-        ),
-        coord2: getCoordinate(
-          { row: secondClicked.row, col: secondClicked.col },
-          isPlayer2
-        ),
+        coord1: getCoordinate({ row: cell1.row, col: cell1.col }, isPlayer2),
+        coord2: getCoordinate({ row: cell2.row, col: cell2.col }, isPlayer2),
       },
     };
 
     const nextTurn = currentTurn === player1Id ? player2Id : player1Id;
 
-    submitTurn(gameId, action, nextTurn!)
+    submitTurn(gameId, action, nextTurn!, isPlayer2)
       .then()
       .catch()
       .finally(() => {
@@ -129,8 +124,7 @@ function Gameboard({
    *
    */
   const onReset = () => {
-    setFirstClicked(null);
-    setSecondClicked(null);
+    setClickedCells([]);
   };
 
   /**
@@ -138,12 +132,28 @@ function Gameboard({
    * @param cellData
    * @returns
    */
-  const onSetFirstClick = (cellData: CellData) => {
-    setFirstClicked(cellData);
-  };
+  const onUpdateClickedCells = (cellData: CellData) => {
+    invariant(player2Location, "player2Location cannot be null");
 
-  const onSetSecondClick = (cellData: CellData) => {
-    setSecondClicked(cellData);
+    if (
+      doesWallBlockPath(
+        cellData,
+        player1Location,
+        player2Location,
+        board,
+        isPlayer2
+      )
+    ) {
+      // TODO - show warning about wall blocking path
+      return;
+    }
+
+    setClickedCells(
+      produce(clickedCells, (draft) => {
+        draft.push(cellData);
+        return draft;
+      })
+    );
   };
 
   /**
@@ -158,7 +168,7 @@ function Gameboard({
     return (
       <Box sx={{ marginTop: 5 }}>
         <Button
-          disabled={!firstClicked}
+          disabled={clickedCells.length === 0}
           variant="outlined"
           size="large"
           onClick={onReset}
@@ -207,10 +217,8 @@ function Gameboard({
               userId={user.id}
               player1Id={player1Id}
               player2Id={player2Id}
-              firstClicked={firstClicked}
-              secondClicked={secondClicked}
-              onSetFirstClick={onSetFirstClick}
-              onSetSecondClick={onSetSecondClick}
+              clickedCells={clickedCells}
+              onClickCell={onUpdateClickedCells}
             />
           ))}
         </Box>

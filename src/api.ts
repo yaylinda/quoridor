@@ -16,6 +16,7 @@ import {
   User,
   UserCollectionObject,
 } from "./types";
+import { PLAYER_1_START, PLAYER_2_START } from "./utils/gameUtils";
 import { randomSingleDigit } from "./utils/randomInteger";
 
 const db = getFirestore(app);
@@ -62,8 +63,8 @@ export const createGame = async (
     player1: player1,
     player2: null,
     createdDate: Timestamp.now(),
-    player1ActionNumber: 0,
-    player2ActionNumber: 0,
+    player1Location: PLAYER_1_START,
+    player2Location: null,
     currentTurn: null,
     actions: [
       {
@@ -100,6 +101,7 @@ export const joinGame = async (
   const partialGameDoc = {
     player2: player2,
     currentTurn: Math.random() < 0.5 ? player1Id : player2.id,
+    player2Locaton: PLAYER_2_START,
     actions: arrayUnion({
       type: GameActionType.JOIN_GAME,
       userId: player2.id,
@@ -124,13 +126,27 @@ export const joinGame = async (
 export const submitTurn = async (
   gameId: string,
   action: GameAction,
-  nextTurn: string
+  nextTurn: string,
+  isPlayer2: boolean
 ): Promise<void> => {
   try {
-    return await updateDoc(doc(gamesCollection, gameId), {
+    const partialGameDoc: { [x: string]: any } = {
       currentTurn: nextTurn,
       actions: arrayUnion(action),
-    });
+    };
+
+    if (
+      action.type === GameActionType.MOVE_PIECE &&
+      action.metadata &&
+      action.metadata.coord2
+    )
+      if (isPlayer2) {
+        partialGameDoc.player2Location = action.metadata.coord2;
+      } else {
+        partialGameDoc.player1Location = action.metadata.coord2;
+      }
+
+    return await updateDoc(doc(gamesCollection, gameId), partialGameDoc);
   } catch (e) {
     throw new Error(`Error adding game action: ${JSON.stringify(e)}`);
   }

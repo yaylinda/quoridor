@@ -13,10 +13,8 @@ interface GameCellProps {
   userId: string;
   player1Id: string;
   player2Id: string | null;
-  firstClicked: CellData | null;
-  secondClicked: CellData | null;
-  onSetFirstClick: (cellData: CellData) => void;
-  onSetSecondClick: (cellData: CellData) => void;
+  clickedCells: CellData[];
+  onClickCell: (cellData: CellData) => void;
 }
 
 /**
@@ -32,11 +30,11 @@ function GameCell({
   userId,
   player1Id,
   player2Id,
-  firstClicked,
-  secondClicked,
-  onSetFirstClick,
-  onSetSecondClick,
+  clickedCells,
+  onClickCell,
 }: GameCellProps) {
+  const [firstClicked, secondClicked] = clickedCells;
+
   const isValidForFirstClick = !(
     !isMyTurn ||
     firstClicked ||
@@ -211,11 +209,11 @@ function GameCell({
 
   const onClick = () => {
     if (isValidForFirstClick) {
-      onSetFirstClick(cellData);
+      onClickCell(cellData);
       return;
     }
     if (isValidForSecondClick) {
-      onSetSecondClick(cellData);
+      onClickCell(cellData);
       return;
     }
   };

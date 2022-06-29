@@ -133,6 +133,8 @@ function GamePage({ user }: UserPageProps) {
           currentTurn={game.currentTurn}
           player1Id={game.player1.id}
           player2Id={game.player2?.id || null}
+          player1Location={game.player1Location}
+          player2Location={game.player2Location}
         />
         {!game.player2 && game.player1.id !== user.id && (
           <Button

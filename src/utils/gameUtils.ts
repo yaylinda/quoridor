@@ -1,3 +1,4 @@
+import produce from "immer";
 import {
   CellData,
   CellType,
@@ -9,8 +10,8 @@ export const CELL_LEN = 9;
 export const WALL_LEN = 8;
 export const WIDTH = CELL_LEN + WALL_LEN;
 
-const PLAYER_1_START = { row: WIDTH - 1, col: 8 } as Coordinate; // from the perspective of player 1
-const PLAYER_2_START = { row: 0, col: 8 } as Coordinate; // from the perspective of player 1
+export const PLAYER_1_START = { row: WIDTH - 1, col: 8 } as Coordinate; // from the perspective of player 1
+export const PLAYER_2_START = { row: 0, col: 8 } as Coordinate; // from the perspective of player 1
 
 /**
  *
@@ -168,6 +169,12 @@ export const getCoordinate = (
   };
 };
 
+/**
+ *
+ * @param otherCell
+ * @param thisCell
+ * @returns
+ */
 export const isAdjacentWall = (otherCell: CellData, thisCell: CellData) => {
   if (otherCell.type !== CellType.WALL) {
     // Don't care; other function will take care of it
@@ -238,6 +245,8 @@ export const isAdjacentCell = (
     }
   }
 
+  // TODO - being able to skip over other pawn
+
   return false;
 };
 
@@ -259,6 +268,112 @@ const isEmptyWall = (row: number, col: number, board: CellData[][]) => {
   return !board[row][col].isWall;
 };
 
-export const doesWallBlockPath = (cellData: CellData, board: CellData[][]) => {
-  // TODO - implement
+/**
+ *
+ * @param potentialWall
+ * @param board
+ * @param isPlayer2
+ * @returns
+ */
+export const doesWallBlockPath = (
+  potentialWall: CellData,
+  player1Location: Coordinate,
+  player2Location: Coordinate,
+  board: CellData[][],
+  isPlayer2: boolean
+) => {
+  if (potentialWall.type !== CellType.WALL) {
+    // We only care if the type is a wall
+    return false;
+  }
+
+  const potentialBoard = produce(board, (draft) => {
+    const coord = getCoordinate(
+      { row: potentialWall.row, col: potentialWall.col },
+      isPlayer2
+    );
+    draft[coord.row][coord.col].isWall = true;
+    return draft;
+  });
+
+  return (
+    canReachLastRow(player1Location, potentialBoard, {}, WIDTH - 1) &&
+    canReachLastRow(player2Location, potentialBoard, {}, 0)
+  );
+};
+
+/**
+ *
+ * @param start
+ * @param board
+ * @param visited
+ * @param lastRowIndex
+ * @returns
+ */
+const canReachLastRow = (
+  start: Coordinate,
+  board: CellData[][],
+  visited: { [row: number]: { [col: number]: boolean } },
+  lastRowIndex: number
+): boolean => {
+  if (start.row === lastRowIndex) {
+    return true;
+  }
+
+  return getNeighbors(start, board, visited)
+    .map((cell) => canReachLastRow(cell, board, visited, lastRowIndex))
+    .some((x) => x);
+};
+
+/**
+ *
+ * @param start
+ * @param board
+ * @param visited
+ * @returns
+ */
+const getNeighbors = (
+  start: Coordinate,
+  board: CellData[][],
+  visited: { [row: number]: { [col: number]: boolean } }
+): Coordinate[] => {
+  const neighbors: Coordinate[] = [];
+
+  // right
+  if (
+    isEmptyWall(start.row, start.col + 1, board) &&
+    !visited[start.row]?.[start.col + 2] &&
+    board[start.row]?.[start.col + 2]
+  ) {
+    neighbors.push(board[start.row][start.col + 2]);
+  }
+
+  // left
+  if (
+    isEmptyWall(start.row, start.col - 1, board) &&
+    !visited[start.row]?.[start.col - 2] &&
+    board[start.row]?.[start.col - 2]
+  ) {
+    neighbors.push(board[start.row][start.col - 2]);
+  }
+
+  // up
+  if (
+    isEmptyWall(start.row + 1, start.col, board) &&
+    !visited[start.row + 2]?.[start.col] &&
+    board[start.row + 2]?.[start.col]
+  ) {
+    neighbors.push(board[start.row + 2][start.col]);
+  }
+
+  // down
+  if (
+    isEmptyWall(start.row - 1, start.col, board) &&
+    !visited[start.row - 2]?.[start.col] &&
+    board[start.row - 2]?.[start.col]
+  ) {
+    neighbors.push(board[start.row - 2][start.col]);
+  }
+
+  return neighbors;
 };

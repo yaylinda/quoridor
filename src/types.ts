@@ -27,10 +27,10 @@ export interface GameCollectionObject {
   player1: User;
   player2: User | null;
   createdDate: Timestamp;
-  player1ActionNumber: number;
-  player2ActionNumber: number;
   currentTurn: string | null;
   actions: GameAction[];
+  player1Location: Coordinate; // coordinate of player 1, wrt player1's view of the board
+  player2Location: Coordinate | null; // coordinate of player 2, wrt player1's view of the board
 }
 
 export interface GameAction {
@@ -48,6 +48,7 @@ export enum GameActionType {
 }
 
 export interface GameActionMetadata {
+  // wrt player1's view of the board
   coord1: Coordinate;
   coord2: Coordinate;
 }
