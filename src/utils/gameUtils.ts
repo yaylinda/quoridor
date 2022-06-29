@@ -288,18 +288,31 @@ export const doesWallBlockPath = (
   }
 
   const potentialBoard = produce(board, (draft) => {
-    const coord = getCoordinate(
-      { row: potentialWall.row, col: potentialWall.col },
-      isPlayer2
-    );
-    draft[coord.row][coord.col].isWall = true;
+    draft[potentialWall.row][potentialWall.col].isWall = true;
     return draft;
   });
 
-  return (
-    canReachLastRow(player1Location, potentialBoard, {}, WIDTH - 1) &&
-    canReachLastRow(player2Location, potentialBoard, {}, 0)
+  const canPlayer1ReachOtherSide = canReachLastRow(
+    getCoordinate(
+      { row: player1Location.row, col: player1Location.col },
+      isPlayer2
+    ),
+    potentialBoard,
+    new Set(coordToHash(player1Location.row, player1Location.col)),
+    isPlayer2 ? WIDTH - 1 : 0
   );
+
+  const canPlayer2ReachOtherSide = canReachLastRow(
+    getCoordinate(
+      { row: player2Location.row, col: player2Location.col },
+      isPlayer2
+    ),
+    potentialBoard,
+    new Set(coordToHash(player2Location.row, player2Location.col)),
+    isPlayer2 ? 0 : WIDTH - 1
+  );
+
+  return !(canPlayer1ReachOtherSide && canPlayer2ReachOtherSide);
 };
 
 /**
@@ -313,14 +326,17 @@ export const doesWallBlockPath = (
 const canReachLastRow = (
   start: Coordinate,
   board: CellData[][],
-  visited: { [row: number]: { [col: number]: boolean } },
+  visited: Set<string>,
   lastRowIndex: number
 ): boolean => {
+  visited.add(coordToHash(start.row, start.col));
+
   if (start.row === lastRowIndex) {
     return true;
   }
 
   return getNeighbors(start, board, visited)
+    .filter((cell) => !visited.has(coordToHash(cell.row, cell.col)))
     .map((cell) => canReachLastRow(cell, board, visited, lastRowIndex))
     .some((x) => x);
 };
@@ -335,14 +351,14 @@ const canReachLastRow = (
 const getNeighbors = (
   start: Coordinate,
   board: CellData[][],
-  visited: { [row: number]: { [col: number]: boolean } }
+  visited: Set<string>
 ): Coordinate[] => {
   const neighbors: Coordinate[] = [];
 
   // right
   if (
     isEmptyWall(start.row, start.col + 1, board) &&
-    !visited[start.row]?.[start.col + 2] &&
+    !visited.has(coordToHash(start.row, start.col + 1)) &&
     board[start.row]?.[start.col + 2]
   ) {
     neighbors.push(board[start.row][start.col + 2]);
@@ -351,7 +367,7 @@ const getNeighbors = (
   // left
   if (
     isEmptyWall(start.row, start.col - 1, board) &&
-    !visited[start.row]?.[start.col - 2] &&
+    !visited.has(coordToHash(start.row, start.col - 1)) &&
     board[start.row]?.[start.col - 2]
   ) {
     neighbors.push(board[start.row][start.col - 2]);
@@ -360,7 +376,7 @@ const getNeighbors = (
   // up
   if (
     isEmptyWall(start.row + 1, start.col, board) &&
-    !visited[start.row + 2]?.[start.col] &&
+    !visited.has(coordToHash(start.row + 2, start.col)) &&
     board[start.row + 2]?.[start.col]
   ) {
     neighbors.push(board[start.row + 2][start.col]);
@@ -369,7 +385,7 @@ const getNeighbors = (
   // down
   if (
     isEmptyWall(start.row - 1, start.col, board) &&
-    !visited[start.row - 2]?.[start.col] &&
+    !visited.has(coordToHash(start.row - 2, start.col)) &&
     board[start.row - 2]?.[start.col]
   ) {
     neighbors.push(board[start.row - 2][start.col]);
@@ -377,3 +393,5 @@ const getNeighbors = (
 
   return neighbors;
 };
+
+const coordToHash = (row: number, col: number) => `${row},${col}`;

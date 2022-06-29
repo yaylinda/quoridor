@@ -101,7 +101,7 @@ export const joinGame = async (
   const partialGameDoc = {
     player2: player2,
     currentTurn: Math.random() < 0.5 ? player1Id : player2.id,
-    player2Locaton: PLAYER_2_START,
+    player2Location: PLAYER_2_START,
     actions: arrayUnion({
       type: GameActionType.JOIN_GAME,
       userId: player2.id,

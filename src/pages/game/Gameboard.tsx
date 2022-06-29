@@ -223,6 +223,7 @@ function Gameboard({
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         open={showInvalidWallSnackbar}
         onClose={() => setShowInvalidWallSnackbar(false)}
+        autoHideDuration={3000}
       >
         <Alert
           onClose={() => setShowInvalidWallSnackbar(false)}
