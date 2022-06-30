@@ -13,6 +13,7 @@ import {
 } from "../../types";
 import {
   applyActionToBoard,
+  didWin,
   doesWallBlockPath,
   getCoordinate,
   initializeGameboard,
@@ -91,22 +92,35 @@ function Gameboard({
 
     setSubmitting(true);
 
-    const action: GameAction = {
-      type:
-        cell1.type === CellType.CELL
-          ? GameActionType.MOVE_PIECE
-          : GameActionType.PLACE_WALL,
-      userId: user.id,
-      createdDate: Timestamp.now(),
-      metadata: {
-        coord1: getCoordinate({ row: cell1.row, col: cell1.col }, isPlayer2),
-        coord2: getCoordinate({ row: cell2.row, col: cell2.col }, isPlayer2),
+    const actionType =
+      cell1.type === CellType.CELL
+        ? GameActionType.MOVE_PIECE
+        : GameActionType.PLACE_WALL;
+
+    const actions: GameAction[] = [
+      {
+        type: actionType,
+        userId: user.id,
+        createdDate: Timestamp.now(),
+        metadata: {
+          coord1: getCoordinate({ row: cell1.row, col: cell1.col }, isPlayer2),
+          coord2: getCoordinate({ row: cell2.row, col: cell2.col }, isPlayer2),
+        },
       },
-    };
+    ];
+
+    if (didWin(cell2, actionType)) {
+      actions.push({
+        type: GameActionType.WIN_GAME,
+        userId: user.id,
+        createdDate: Timestamp.now(),
+        metadata: null,
+      });
+    }
 
     const nextTurn = currentTurn === player1Id ? player2Id : player1Id;
 
-    submitTurn(gameId, action, nextTurn!, isPlayer2)
+    submitTurn(gameId, actions, nextTurn!, isPlayer2)
       .then()
       .catch()
       .finally(() => {

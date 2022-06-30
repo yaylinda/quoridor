@@ -125,25 +125,28 @@ export const joinGame = async (
  */
 export const submitTurn = async (
   gameId: string,
-  action: GameAction,
+  actions: GameAction[],
   nextTurn: string,
   isPlayer2: boolean
 ): Promise<void> => {
   try {
     const partialGameDoc: { [x: string]: any } = {
       currentTurn: nextTurn,
-      actions: arrayUnion(action),
+      actions: arrayUnion(actions),
     };
 
+    const mainAction = actions[0];
+
     if (
-      action.type === GameActionType.MOVE_PIECE &&
-      action.metadata &&
-      action.metadata.coord2
+      mainAction &&
+      mainAction.type === GameActionType.MOVE_PIECE &&
+      mainAction.metadata &&
+      mainAction.metadata.coord2
     )
       if (isPlayer2) {
-        partialGameDoc.player2Location = action.metadata.coord2;
+        partialGameDoc.player2Location = mainAction.metadata.coord2;
       } else {
-        partialGameDoc.player1Location = action.metadata.coord2;
+        partialGameDoc.player1Location = mainAction.metadata.coord2;
       }
 
     return await updateDoc(doc(gamesCollection, gameId), partialGameDoc);

@@ -395,3 +395,15 @@ const getNeighbors = (
 };
 
 const coordToHash = (row: number, col: number) => `${row},${col}`;
+
+export const didWin = (
+  cell2: CellData,
+  actionType: GameActionType
+): boolean => {
+  if (actionType !== GameActionType.MOVE_PIECE) {
+    return false;
+  }
+
+  // cell coordinates are wrt to the current user, so it will always be row 0
+  return cell2.row === 0;
+};

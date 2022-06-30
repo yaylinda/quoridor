@@ -45,6 +45,7 @@ export enum GameActionType {
   JOIN_GAME = "JOIN_GAME",
   MOVE_PIECE = "MOVE_PIECE",
   PLACE_WALL = "PLACE_WALL",
+  WIN_GAME = "WIN_GAME",
 }
 
 export interface GameActionMetadata {
