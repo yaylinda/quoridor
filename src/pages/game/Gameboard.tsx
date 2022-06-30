@@ -97,30 +97,25 @@ function Gameboard({
         ? GameActionType.MOVE_PIECE
         : GameActionType.PLACE_WALL;
 
-    const actions: GameAction[] = [
-      {
-        type: actionType,
-        userId: user.id,
-        createdDate: Timestamp.now(),
-        metadata: {
-          coord1: getCoordinate({ row: cell1.row, col: cell1.col }, isPlayer2),
-          coord2: getCoordinate({ row: cell2.row, col: cell2.col }, isPlayer2),
-        },
+    const action = {
+      type: actionType,
+      userId: user.id,
+      createdDate: Timestamp.now(),
+      metadata: {
+        coord1: getCoordinate({ row: cell1.row, col: cell1.col }, isPlayer2),
+        coord2: getCoordinate({ row: cell2.row, col: cell2.col }, isPlayer2),
       },
-    ];
+    };
 
-    if (didWin(cell2, actionType)) {
-      actions.push({
-        type: GameActionType.WIN_GAME,
-        userId: user.id,
-        createdDate: Timestamp.now(),
-        metadata: null,
-      });
-    }
+    invariant(player2Id != null, "player2 cannot be null");
 
-    const nextTurn = currentTurn === player1Id ? player2Id : player1Id;
-
-    submitTurn(gameId, actions, nextTurn!, isPlayer2)
+    submitTurn(
+      gameId,
+      action,
+      currentTurn === player1Id ? player2Id : player1Id,
+      isPlayer2,
+      didWin(cell2, actionType)
+    )
       .then()
       .catch()
       .finally(() => {

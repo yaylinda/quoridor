@@ -1,6 +1,14 @@
 import { Loop, PlayArrow } from "@mui/icons-material";
-import { Button, Container, LinearProgress, Typography } from "@mui/material";
+import {
+  Alert,
+  AlertTitle,
+  Button,
+  Container,
+  LinearProgress,
+  Typography,
+} from "@mui/material";
 import { doc, onSnapshot } from "firebase/firestore";
+import invariant from "invariant";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -58,6 +66,30 @@ function GamePage({ user }: UserPageProps) {
       .finally(() => {
         setJoining(false);
       });
+  };
+
+  /**
+   *
+   * @returns
+   */
+  const renderWinner = () => {
+    if (!game || !game.winner) {
+      return null;
+    }
+
+    invariant(game.player2 != null, "player2 cannot be null");
+
+    const name =
+      game.winner === game.player1.id
+        ? game.player1.username
+        : game.player2.username;
+
+    return (
+      <Alert severity="success">
+        <AlertTitle>Congrats {name}</AlertTitle>
+        You beat your opponent in a game of Quridor!
+      </Alert>
+    );
   };
 
   /**
@@ -125,6 +157,7 @@ function GamePage({ user }: UserPageProps) {
           Created {moment(game.createdDate.seconds, "X").fromNow()}
         </Typography>
         {renderStatus(isMyTurn)}
+        {renderWinner}
         <Gameboard
           gameId={game.id}
           gameActions={game.actions}

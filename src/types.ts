@@ -31,6 +31,7 @@ export interface GameCollectionObject {
   actions: GameAction[];
   player1Location: Coordinate; // coordinate of player 1, wrt player1's view of the board
   player2Location: Coordinate | null; // coordinate of player 2, wrt player1's view of the board
+  winner: string; // userId of the winning player
 }
 
 export interface GameAction {
@@ -45,7 +46,6 @@ export enum GameActionType {
   JOIN_GAME = "JOIN_GAME",
   MOVE_PIECE = "MOVE_PIECE",
   PLACE_WALL = "PLACE_WALL",
-  WIN_GAME = "WIN_GAME",
 }
 
 export interface GameActionMetadata {
