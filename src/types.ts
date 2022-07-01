@@ -31,7 +31,7 @@ export interface GameCollectionObject {
   actions: GameAction[];
   player1Location: Coordinate; // coordinate of player 1, wrt player1's view of the board
   player2Location: Coordinate | null; // coordinate of player 2, wrt player1's view of the board
-  winner: string; // userId of the winning player
+  winner: string | null; // userId of the winning player
 }
 
 export interface GameAction {

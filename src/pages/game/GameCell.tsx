@@ -13,6 +13,7 @@ interface GameCellProps {
   userId: string;
   player1Id: string;
   player2Id: string | null;
+  winner: string | null;
   clickedCells: CellData[];
   onClickCell: (cellData: CellData) => void;
 }
@@ -30,20 +31,24 @@ function GameCell({
   userId,
   player1Id,
   player2Id,
+  winner,
   clickedCells,
   onClickCell,
 }: GameCellProps) {
   const [firstClicked, secondClicked] = clickedCells;
 
-  const isValidForFirstClick = !(
-    !isMyTurn ||
-    firstClicked ||
-    cellData.type === CellType.BLANK ||
-    (cellData.type === CellType.WALL && cellData.isWall) ||
-    (cellData.type === CellType.CELL && cellData.occupiedBy !== userId)
-  );
+  const isValidForFirstClick =
+    !winner &&
+    !(
+      !isMyTurn ||
+      firstClicked ||
+      cellData.type === CellType.BLANK ||
+      (cellData.type === CellType.WALL && cellData.isWall) ||
+      (cellData.type === CellType.CELL && cellData.occupiedBy !== userId)
+    );
 
   const isValidForSecondClick =
+    !winner &&
     firstClicked &&
     !secondClicked &&
     cellData.id !== firstClicked.id &&

@@ -29,6 +29,7 @@ interface GameboardProps {
   currentTurn: string | null;
   player1Id: string;
   player2Id: string | null;
+  winner: string | null;
   player1Location: Coordinate;
   player2Location: Coordinate | null;
 }
@@ -41,6 +42,7 @@ function Gameboard({
   currentTurn,
   player1Id,
   player2Id,
+  winner,
   player1Location,
   player2Location,
 }: GameboardProps) {
@@ -221,6 +223,7 @@ function Gameboard({
               userId={user.id}
               player1Id={player1Id}
               player2Id={player2Id}
+              winner={winner}
               clickedCells={clickedCells}
               onClickCell={onUpdateClickedCells}
             />

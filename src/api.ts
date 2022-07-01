@@ -66,6 +66,7 @@ export const createGame = async (
     player1Location: PLAYER_1_START,
     player2Location: null,
     currentTurn: null,
+    winner: null,
     actions: [
       {
         type: GameActionType.CREATE_GAME,

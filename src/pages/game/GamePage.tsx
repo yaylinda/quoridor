@@ -79,15 +79,21 @@ function GamePage({ user }: UserPageProps) {
 
     invariant(game.player2 != null, "player2 cannot be null");
 
-    const name =
-      game.winner === game.player1.id
-        ? game.player1.username
-        : game.player2.username;
+    let alertText;
+    if (user.id !== game.player1.id && game.winner !== game.player2.id) {
+      alertText = `${
+        game.winner === game.player1.id ? "Player 1" : "Player 2"
+      } wins!`;
+    } else if (game.winner === user.id) {
+      alertText = `Congrats ${user.username}!`;
+    } else {
+      alertText = `Good try, ${user.username}!`;
+    }
 
     return (
       <Alert severity="success">
-        <AlertTitle>Congrats {name}</AlertTitle>
-        You beat your opponent in a game of Quridor!
+        <AlertTitle>Game Over</AlertTitle>
+        {alertText}
       </Alert>
     );
   };
@@ -103,7 +109,10 @@ function GamePage({ user }: UserPageProps) {
     let color;
     let text;
 
-    if (!game.player2) {
+    if (game.winner) {
+      color = "gray";
+      text = "GAME OVER";
+    } else if (!game.player2) {
       color = "orange";
       text = "WAITING FOR PLAYER 2";
     } else if (isMyTurn) {
@@ -168,6 +177,7 @@ function GamePage({ user }: UserPageProps) {
           player2Id={game.player2?.id || null}
           player1Location={game.player1Location}
           player2Location={game.player2Location}
+          winner={game.winner}
         />
         {!game.player2 && game.player1.id !== user.id && (
           <Button
