@@ -206,6 +206,8 @@ export const isAdjacentWall = (otherCell: CellData, thisCell: CellData) => {
 export const isAdjacentCell = (
   otherCell: CellData,
   thisCell: CellData,
+  player1Location: Coordinate,
+  player2Location: Coordinate,
   board: CellData[][]
 ) => {
   if (otherCell.type !== CellType.CELL) {
@@ -245,7 +247,9 @@ export const isAdjacentCell = (
     }
   }
 
-  // TODO - being able to skip over other pawn
+  // Skip over other pawn
+
+  // Check diagonals
 
   return false;
 };
@@ -258,6 +262,22 @@ export const isAdjacentCell = (
  * @returns
  */
 const isEmptyWall = (row: number, col: number, board: CellData[][]) => {
+  if (row > board.length - 1 || row < 0) {
+    return true;
+  }
+  if (col > board[row].length - 1 || col < 0) {
+    return true;
+  }
+
+  return !board[row][col].isWall;
+};
+
+const isCellEmpty = (
+  row: number,
+  col: number,
+  player1Location,
+  player2Location
+) => {
   if (row > board.length - 1 || row < 0) {
     return true;
   }
